@@ -31,13 +31,13 @@ class Application(Frame):
         self.tipo['menu'].config(bg='#2B2B2B',bd=0,relief=FLAT,fg='white',font=self.font1)
         self.tipo.place(x=50,y=380,height=40,width=400)
         self.img = Entry(self.master,bg='#2B2B2B',foreground="#ffffff",font=self.font1,borderwidth=0,relief=FLAT).place(x=50,y=470,height=40,width=400)
-        self.addtogroup = ttk.Button(self.master,style='TButton',text="Adicionar a Grupo").place(x=75,y=560, width=350)
+        self.addtogroup = ttk.Button(self.master,style='TButton',text="Adicionar a Grupo").place(x=75,y=560, width=350)     #adicionar o command para a função adicionar()
         self.grupoatual = Label(self.master,text="Grupo Atual: 0",bg='#2B2B2B',fg='#ffffff').place(x=200,y=610,height=30)
-        self.gerar = ttk.Button(self.master,text="Gerar",style='TButton').place(x=75,y=710,width=350)
+        self.gerar = ttk.Button(self.master,text="Gerar",style='TButton').place(x=75,y=710,width=350)   #adicionar o command para a função gerar()
         sep=ttk.Separator(self.master,orient=VERTICAL).place(x=500,y=100,height=582)
         self.search=Entry(self.master,font=self.font1).place(x=550,y=30,height=40,width=400)
         self.imgpreview=Label(self.master,bg='#000000').place(x=540,y=90,height=595,width=420)
-        self.preview = ttk.Button(self.master,text="Preview",style='TButton',command=self.check_entries).place(x=575,y=710,height=40,width=350)
+        self.preview = ttk.Button(self.master,text="Preview",style='TButton').place(x=575,y=710,height=40,width=350)    #adicionar o command para a função preview()
 
     def check_entries(self):
         nome=self.nome.get()
