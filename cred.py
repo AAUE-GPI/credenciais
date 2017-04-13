@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter import font,ttk
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.pdfgen import canvas
 #from db import *
 from PIL import Image, ImageTk
 
@@ -8,6 +10,7 @@ class Application(Frame):
         Frame.__init__(self, master)
         self.pack()
         self.createWidgets()
+        self.c=canvas.Canvas('credencial.pdf')
 
     def createWidgets(self):
 
@@ -33,17 +36,41 @@ class Application(Frame):
         self.img = Entry(self.master,bg='#2B2B2B',foreground="#ffffff",font=self.font1,borderwidth=0,relief=FLAT).place(x=50,y=470,height=40,width=400)
         self.addtogroup = ttk.Button(self.master,style='TButton',text="Adicionar a Grupo").place(x=75,y=560, width=350)     #adicionar o command para a função adicionar()
         self.grupoatual = Label(self.master,text="Grupo Atual: 0",bg='#2B2B2B',fg='#ffffff').place(x=200,y=610,height=30)
-        self.gerar = ttk.Button(self.master,text="Gerar",style='TButton').place(x=75,y=710,width=350)   #adicionar o command para a função gerar()
+        self.gerar = ttk.Button(self.master,text="Gerar",style='TButton',command=self.check_entries).place(x=75,y=710,width=350)   #adicionar o command para a função gerar()
         sep=ttk.Separator(self.master,orient=VERTICAL).place(x=500,y=100,height=582)
         self.search=Entry(self.master,font=self.font1).place(x=550,y=30,height=40,width=400)
         self.imgpreview=Label(self.master,bg='#000000').place(x=540,y=90,height=595,width=420)
         self.preview = ttk.Button(self.master,text="Preview",style='TButton').place(x=575,y=710,height=40,width=350)    #adicionar o command para a função preview()
 
     def check_entries(self):
+        '''
         nome=self.nome.get()
         bi=self.bi.get()
         tipo=self.tipo.get()
         img=self.img.get()
+        '''
+        fundo='fundo.jpg' #escolher a imagem de fundo do pdf (sempre 600x848)
+        from reportlab.lib.units import cm
+        self.c.drawImage(fundo,0,0)
+        self.c.setFont("Helvetica", 20)
+        self.c.setStrokeColorRGB(0,0,0)
+        self.c.setFillColorRGB(0,0,0)
+
+        ###Depois de se ligar a bd uncomment###
+        #self.c.drawString(2*cm,20*cm,nome)
+        #self.c.drawString(2*cm,15*cm,bi)
+        #self.c.drawString(2*cm,6*cm,alfanum)
+
+        self.c.drawString(2*cm,21.2*cm,'Nome:')
+        self.c.drawString(2*cm,16.2*cm,'BI/CC/Matricula:')
+        self.c.setFillColorRGB(1,1,1)
+        self.c.rect(2*cm,20*cm,11*cm,1*cm, fill=1)
+        self.c.rect(2*cm,15*cm,11*cm,1*cm, fill=1)
+        self.c.rect(2.5*cm,7*cm,5.5*cm,5.5*cm, fill=1)
+        self.c.rect(2*cm,6*cm,6.5*cm,1*cm, fill=1)
+        self.c.showPage()
+        self.c.save()
+
 
 
 def main():
