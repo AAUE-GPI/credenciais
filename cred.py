@@ -1,10 +1,12 @@
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from tkinter import *
-from tkinter import font,ttk,messagebox
+from tkinter import font,ttk,messagebox,filedialog
 from reportlab.lib.pagesizes import A4,A6
 from reportlab.pdfgen import canvas
 import random
 from PIL import Image,ImageDraw,ImageFont
+import db
+import os.path
 
 class Application(Frame):
     def __init__(self, master=None):
@@ -31,28 +33,31 @@ class Application(Frame):
         self.entrystyle=ttk.Style().configure("TEntry", bg='#2B2B2B', foreground="#ffffff",font=self.font1,borderwidth=0,relief=FLAT, width = 50)   #Estilo das Entries(não surtiu efeito quando exprimentei)
 
         self.listusr=StringVar()        #variavel que vai guardar o tipo de utilizador
+        self.tipousers=['AAUE','Núcleos','Serviços','Catering','Conceções','Apoio Médico','Artista','Viatura','Live Act']
+        self.nometext=StringVar()
+        self.idtext=StringVar()
 
         #design#
         self.aaue=PhotoImage(file='logo.png')
         Label(self.master, image=self.aaue,bd=0).place(x=200,y=10)
 
-        Label(self.master, text="Nome",font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff').place(x=50,y=140)
-        self.nome = Entry(self.master,bg='#2B2B2B',foreground="#ffffff",font=self.font1,borderwidth=0,relief=FLAT)
+        Label(self.master,text="Nome",font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff').place(x=50,y=140)
+        self.nome = Entry(self.master,textvariable=self.nometext,bg='#2B2B2B',foreground="#ffffff",font=self.font1,borderwidth=0,relief=FLAT)
         self.nome.place(x=50,y=160,height=40,width=400)
 
         Label(self.master, text="BI/CC/Matrícula",font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff').place(x=50,y=230)
-        self.bi = Entry(self.master,bg='#2B2B2B',foreground="#ffffff",font=self.font1,borderwidth=0,relief=FLAT)
+        self.bi = Entry(self.master,textvariable=self.idtext,bg='#2B2B2B',foreground="#ffffff",font=self.font1,borderwidth=0,relief=FLAT)
         self.bi.place(x=50,y=250,height=40,width=400)
 
         Label(self.master, text="Tipo de utilizador",font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff').place(x=50,y=320)
-        self.tipo = OptionMenu(self.master,self.listusr,'Nucleos','Veiculos','Artista','Som','etc')
+        self.tipo = OptionMenu(self.master,self.listusr,*self.tipousers)
         self.tipo.config(bg='#2B2B2B',bd=0,relief=FLAT,fg='white',font=self.font1)
         self.tipo['menu'].config(bg='#2B2B2B',bd=0,relief=FLAT,fg='white',font=self.font1)
         self.tipo.place(x=50,y=340,height=40,width=400)
 
-        Label(self.master, text="Imagem de Fundo",font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff').place(x=50,y=410)
-        self.img = Entry(self.master,bg='#2B2B2B',foreground="#ffffff",font=self.font1,borderwidth=0,relief=FLAT)
-        self.img.place(x=50,y=430,height=40,width=400)
+        Label(self.master, text="",font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff').place(x=50,y=410)
+        self.img = ttk.Button(self.master,style='TButton',text='Escolher Fotografia',command=self.getfoto)
+        self.img.place(x=50,y=410,height=40,width=400)
 
         self.group1 = ttk.Button(self.master,style='unpressed.TButton',text="1",command=self.switch(1))
         self.group1.place(x=150,y=495,width=50,height=50)
@@ -73,21 +78,89 @@ class Application(Frame):
 
         self.help=ttk.Button(self.master,style='unpressed.TButton',text='?',command=self.help).place(x=370,y=520,width=50,height=50)
 
-        self.gerar = ttk.Button(self.master,text="Gerar",style='TButton',command=self.gerar).place(x=75,y=620,width=350)   #adicionar o command para a função gerar()
+        self.gerar = ttk.Button(self.master,text="Gerar",style='TButton',command=self.gerar).place(x=50,y=620,width=175)   #adicionar o command para a função gerar()
+        self.adicionar = ttk.Button(self.master,text="Adicionar",style='TButton',command=self.add).place(x=275,y=620,width=175)
         sep=ttk.Separator(self.master,orient=VERTICAL).place(x=500,y=50,height=580)
-        self.search=Entry(self.master,font=self.font1)
-        self.search.place(x=550,y=30,height=40,width=400)
-        self.imgpreview=Label(self.master,bg='#000000').place(x=601,y=90,height=420,width=297)
-        self.preview = ttk.Button(self.master,text="Preview",style='TButton').place(x=575,y=620,height=40,width=350)    #adicionar o command para a função preview()
+        self.procuranome = ttk.Button(self.master,text="Procurar",style='TButton',command=self.searchbyname).place(x=550,y=100,height=80,width=175)    #adicionar o command para a função preview()
+        self.procuraid = ttk.Button(self.master,text="Limpar",style='TButton',command=self.limpar).place(x=775,y=100,height=80,width=175)
+
+    def getfoto(self):
+        self.foto=filedialog.askopenfilename(filetypes=[('Image Files',("*.jpg","*.jpeg","*.png"))])
 
     def help(self):
         messagebox.showinfo("Ajuda para Zonas","Zona 1: Recinto\nZona 2: Bilheteira\nZona 3: SAFA\nZona 4: Central de Abastecimento\nZona 5: VIP\nZona 6: Frente de Palco\nZona 7: Backstage\nZona 8: Estacionamento")
 
-    def search(self):
-        self.nome['text']=db.getbyname(self.nome.get())
-        self.bi['text']=db.getbi()
-        self.listusr.set(db.gettipo())
-        self.codalfa=db.getcodigo()
+    def add(self):
+        alfa=db.adicionar(self.nometext.get(),self.idtext.get(),self.listusr.get())
+        user=db.getbyall(alfa,self.nometext.get(),self.idtext.get(),self.listusr.get())
+        if user!=[]:
+            try:
+                self.foto
+            except NameError:
+                print('')
+            else:
+                fotogra=Image.open(self.foto)
+                fotogra=fotogra.resize((87,105))
+                fotogra.save('fotos/'+self.idtext.get()+'.jpeg','jpeg')
+            messagebox.showinfo("Sucesso","Utilizador "+self.nometext.get()+" criado/alterado com sucesso")
+
+    def CodigoAlfaNum(self):
+        caracter= '0A0KU1B1L2V2CM3W3D4NX4EO5Y5F6PZ6G7Q7H8R8IS9JT9'
+        AlfaNum='QF17'
+        for i in range(0,8):
+            AlfaNum += random.choice(caracter)
+        return AlfaNum
+
+    def searchbyname(self):
+        if self.nometext.get()!='' and self.idtext.get()!='':
+            user=db.getbyboth(self.nometext.get(),self.idtext.get())
+        elif self.idtext.get()=='' and self.nometext.get()!='':
+            user=db.getbyname(self.nometext.get())
+        elif self.idtext.get()!='' and self.nometext.get()=='':
+            user=db.getbyid(self.idtext.get())
+
+        if(user != []):
+            self.nometext.set(user[0][1])
+            self.idtext.set(user[0][2])
+            self.listusr.set(user[0][3])
+            self.codalfa=user[0][0]
+            if user[0][3]=='AAUE':
+                self.switch(1)
+            elif user[0][3]=='Núcleos':
+                self.switch(1)
+                self.switch(4)
+            elif user[0][3]=='Serviços':
+                self.switch(1)
+                self.switch(3)
+                self.switch(4)
+                self.switch(5)
+                self.switch(6)
+                self.switch(7)
+                self.switch(8)
+            elif user[0][3]=='Catering':
+                self.switch(1)
+                self.switch(4)
+                self.switch(6)
+                self.switch(7)
+                self.switch(8)
+            elif user[0][3]=='Conceções' or user[0][2]=='Apoio Médico':
+                self.switch(1)
+                self.switch(8)
+            elif user[0][3]=='Artista':
+                self.switch(1)
+                self.switch(6)
+                self.switch(7)
+            elif user[0][3]=='Viatura':
+                self.switch(8)
+        else:
+            messagebox.showinfo("Não Encontrado","Utilizador não encontrado na Base de dados")
+
+    def limpar(self):
+        self.nometext.set('')
+        self.idtext.set('')
+        self.listusr.set('')
+        self.codalfa=''
+        self.foto=None
 
     def switch(self,n):
         def wrapper(x=n):
@@ -141,17 +214,14 @@ class Application(Frame):
                 self.grupos[8]=1
         return wrapper
 
-    def CodigoAlfaNum(self):
-        caracter= '0A0KU1B1L2V2CM3W3D4NX4EO5Y5F6PZ6G7Q7H8R8IS9JT9'
-        AlfaNum='QF17'
-        for i in range(0,8):
-            AlfaNum += random.choice(caracter)
-        return AlfaNum
-
     def gerar(self):
+        if os.path.isfile('fotos/'+self.idtext.get()+'.jpeg'):
+            self.foto='fotos/'+self.idtext.get()+'.jpeg'
+        else:
+            self.foto=None
         #self.gerarA6()
         self.gerarA4()
-        messagebox.showinfo("Sucesso", "Credencial "+str(self.CodigoAlfaNum())+" criada com sucesso.")
+        messagebox.showinfo("Sucesso", "Credencial "+str(self.codalfa)+" criada com sucesso.")
 
     def gerarA6(self):
         from reportlab.lib.units import mm
@@ -203,21 +273,21 @@ class Application(Frame):
         fname='credsA4/Credencial'+str(countfiles+1)+'.pdf'
         if countmerged==0:
             can=canvas.Canvas(fname)
-            can.setLineWidth(.5)
+            can.setLineWidth(1)
             can.line(297.5,0,297.5,842)
             can.line(0,421,595,421)
             can.showPage()
             can.save()
             x=0
-            y=421
+            y=421.5
         elif countmerged==1:
-            x=299
-            y=421
+            x=298
+            y=421.5
         elif countmerged==2:
             x=0
             y=0
         elif countmerged==3:
-            x=299
+            x=298
             y=0
         posx=147
         posy=267
@@ -226,7 +296,6 @@ class Application(Frame):
         self.c.setStrokeColorRGB(1,1,1)
         self.c.drawImage(fundo,x,y)
         self.c.setFillColorRGB(1,1,1)
-        self.c.rect(x+30,y+198,87,105)                     #caixa para a foto
         self.c.rect(x+30,y+156,237,20, fill=1)             #caixa para o nome
         self.c.rect(x+30,y+108,237,20, fill=1)             #caixa para o bi/cc/Matricula
         self.c.rect(x+147,y+198,120,20, fill=1)            #caixa para tipo de utilizador
@@ -251,11 +320,11 @@ class Application(Frame):
                     self.c.setFillColorRGB(1,0.4,0)
                     self.c.setStrokeColorRGB(1,0.4,0)
                 elif i==6:
-                    self.c.setFillColorRGB(0,0.4,1)
-                    self.c.setStrokeColorRGB(0,0.4,1)
+                    self.c.setFillColorRGB(1,0,0.39)
+                    self.c.setStrokeColorRGB(1,0,0.39)
                 elif i==7:
-                    self.c.setFillColorRGB(0.6,0,1)
-                    self.c.setStrokeColorRGB(0.6,0,1)
+                    self.c.setFillColorRGB(0,1,1)
+                    self.c.setStrokeColorRGB(0,1,1)
                 elif i==8:
                     self.c.setFillColorRGB(0.4,0.2,0)
                     self.c.setStrokeColorRGB(0.4,0.2,0)
@@ -275,11 +344,30 @@ class Application(Frame):
                 posy-=30
         self.c.setStrokeColorRGB(0,0,0)
         self.c.setFillColorRGB(0,0,0)
-        self.c.drawCentredString(x+80,y+28,self.CodigoAlfaNum().upper())
+        if self.listusr.get()=='Artista':
+            self.c.drawString(x+33,y+130, 'Válido para:')
+        elif self.listusr.get()=='Viatura':
+            self.c.drawString(x+33,y+130,'Matricula:')
+        elif self.listusr.get()=='Catering' or self.listusr.get()=='AAUE' or self.listusr.get()=='Núcleos':
+            self.c.drawString(x+33,y+130,'BI/CC:')
+            try:
+                self.foto
+            except NameError:
+                print("nao existe foto")
+            else:
+                self.c.setStrokeColorRGB(1,1,1)
+                self.c.setFillColorRGB(1,1,1)
+                self.c.rect(x+30,y+198,87,105,fill=1)              #caixa para a foto
+                self.c.drawImage(self.foto,x+30,y+198)
+        else:
+            self.c.drawString(x+33,y+130,'BI/CC:')
+
+        self.c.setStrokeColorRGB(0,0,0)
+        self.c.setFillColorRGB(0,0,0)
+
+        self.c.drawCentredString(x+80,y+28,self.codalfa.upper())
 
         self.c.drawString(x+33,y+178,'Nome:')
-        self.c.drawString(x+33,y+130,'BI/CC/Matricula:')
-
         self.c.setFont("Helvetica-Bold", 14)
 
         self.c.drawString(x+35,y+160,self.nome.get().upper())
