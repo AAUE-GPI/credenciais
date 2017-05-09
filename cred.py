@@ -7,6 +7,7 @@ import random
 from PIL import Image,ImageDraw,ImageFont
 import db
 import os.path
+import pyqrcode
 
 class Application(Frame):
     def __init__(self, master=None):
@@ -78,11 +79,33 @@ class Application(Frame):
 
         self.help=ttk.Button(self.master,style='unpressed.TButton',text='?',command=self.help).place(x=370,y=520,width=50,height=50)
 
-        self.gerar = ttk.Button(self.master,text="Gerar",style='TButton',command=self.gerar).place(x=50,y=620,width=175)   #adicionar o command para a função gerar()
+        self.addtogroup = ttk.Button(self.master,text="Adicionar ao grupo",style='TButton',command=self.gerar).place(x=550,y=200,height=50,width=400)   #adicionar o command para a função gerar()
         self.adicionar = ttk.Button(self.master,text="Adicionar",style='TButton',command=self.add).place(x=275,y=620,width=175)
         sep=ttk.Separator(self.master,orient=VERTICAL).place(x=500,y=50,height=580)
-        self.procuranome = ttk.Button(self.master,text="Procurar",style='TButton',command=self.searchbyname).place(x=550,y=100,height=80,width=175)    #adicionar o command para a função preview()
-        self.procuraid = ttk.Button(self.master,text="Limpar",style='TButton',command=self.limpar).place(x=775,y=100,height=80,width=175)
+        self.procuranome = ttk.Button(self.master,text="Procurar",style='TButton',command=self.searchbyname).place(x=550,y=100,height=50,width=175)    #adicionar o command para a função preview()
+        self.procuraid = ttk.Button(self.master,text="Limpar",style='TButton',command=self.limpar).place(x=775,y=100,height=50,width=175)
+        self.gerar=ttk.Button(self.master,text='Gerar',style='TButton',command=self.mergeall).place(x=50,y=620,width=175)
+        self.nrgrupo=Label(self.master, text="Credenciais no grupo: 0",font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff')
+        self.nrgrupo.place(x=650,y=250)
+
+    def mergeall(self):
+        countmerged=int(open('cnt1').read())
+        countfiles=int(open('cnt2').read())
+        output=PdfFileWriter()
+        for each in range(countfiles+1):
+            inpu=PdfFileReader('credsA4/Credencial'+str(each+1)+'.pdf','rb')
+            pagecount=inpu.getNumPages()
+            for ipage in range(0,pagecount):
+                output.addPage(inpu.getPage(ipage))
+        outputStream=open('printready.pdf','wb')
+        output.write(outputStream)
+        outputStream.close
+        for fil in os.scandir('credsA4/'):
+            os.unlink(fil.path)
+        open('cnt1','w').write('0')
+        open('cnt2','w').write('0')
+        nr=countfiles*4+countmerged
+        self.nrgrupo['text']="Credenciais no grupo: "+str(nr)
 
     def getfoto(self):
         self.foto=filedialog.askopenfilename(filetypes=[('Image Files',("*.jpg","*.jpeg","*.png"))])
@@ -103,13 +126,6 @@ class Application(Frame):
                 fotogra=fotogra.resize((87,105))
                 fotogra.save('fotos/'+self.idtext.get()+'.jpeg','jpeg')
             messagebox.showinfo("Sucesso","Utilizador "+self.nometext.get()+" criado/alterado com sucesso")
-
-    def CodigoAlfaNum(self):
-        caracter= '0A0KU1B1L2V2CM3W3D4NX4EO5Y5F6PZ6G7Q7H8R8IS9JT9'
-        AlfaNum='QF17'
-        for i in range(0,8):
-            AlfaNum += random.choice(caracter)
-        return AlfaNum
 
     def searchbyname(self):
         if self.nometext.get()!='' and self.idtext.get()!='':
@@ -219,53 +235,15 @@ class Application(Frame):
             self.foto='fotos/'+self.idtext.get()+'.jpeg'
         else:
             self.foto=None
-        #self.gerarA6()
         self.gerarA4()
         messagebox.showinfo("Sucesso", "Credencial "+str(self.codalfa)+" criada com sucesso.")
-
-    def gerarA6(self):
-        from reportlab.lib.units import mm
-        posx=60
-        posy=100
-        fich='credsA6/Credencial'+self.CodigoAlfaNum()+'.pdf'
-        self.c=canvas.Canvas(fich,pagesize=A6)
-        fundo='fundo.jpg' #escolher a imagem de fundo do pdf (sempre 300x424)
-        self.c.drawImage(fundo,0,0)
-        self.c.setFillColorRGB(1,1,1)
-        self.c.rect(10*mm,85*mm,40*mm,5*mm, fill=1)             #caixa para o nome
-        self.c.rect(10*mm,60*mm,40*mm,5*mm, fill=1)             #caixa para o bi/cc/Matricula
-        self.c.rect(16.25*mm,20*mm,17.5*mm,17.5*mm, fill=1)     #caixa para o qrcode
-        self.c.rect(10*mm,15*mm,30*mm,5*mm, fill=1)             #caixa para o codigo alfanumerico
-        self.c.setFont("Helvetica", 10)
-        for i in self.grupos:
-            if self.grupos[i]==1:
-                self.c.setFillColorRGB(1,1,1)
-                self.c.rect(posx*mm,posy*mm,10*mm,10*mm,fill=1)
-                self.c.setFillColorRGB(0,0,0)
-                self.c.drawString((posx+4)*mm,(posy+4)*mm,str(i))
-            if i!=4:
-                posx+=10
-            else:
-                posx-=25
-                posy-=10
-        self.c.setStrokeColorRGB(0,0,0)
-        self.c.setFillColorRGB(0,0,0)
-
-        self.c.drawString(11.5*mm,86.25*mm,self.nome.get())
-        self.c.drawString(11.5*mm,61.25*mm,self.bi.get())
-        self.c.drawString(11*mm,16.1*mm,self.CodigoAlfaNum())
-
-        self.c.drawString(10*mm,91*mm,'Nome:')
-        self.c.drawString(10*mm,66*mm,'BI/CC/Matricula:')
-        self.c.showPage()
-        self.c.save()
 
     def gerarA4(self):
         from reportlab.lib.units import mm
         countmerged=int(open('cnt1').read())
         countfiles=int(open('cnt2').read())
         fich='credsA4/Credencialtemp.pdf'
-        fundo='fundo.jpg' #escolher a imagem de fundo do pdf (sempre 297x421)
+        fundo='fundo1.png' #escolher a imagem de fundo do pdf (sempre 296x420)
         self.c=canvas.Canvas(fich)
         if countmerged==4:
             countfiles+=1
@@ -274,7 +252,7 @@ class Application(Frame):
         if countmerged==0:
             can=canvas.Canvas(fname)
             can.setLineWidth(1)
-            can.line(297.5,0,297.5,842)
+            can.line(297,0,297,842)
             can.line(0,421,595,421)
             can.showPage()
             can.save()
@@ -290,50 +268,49 @@ class Application(Frame):
             x=298
             y=0
         posx=147
-        posy=267
+        posy=275
         printready=PdfFileReader(fname,'rb')
         page1=printready.getPage(0)
         self.c.setStrokeColorRGB(1,1,1)
         self.c.drawImage(fundo,x,y)
         self.c.setFillColorRGB(1,1,1)
-        self.c.rect(x+30,y+156,237,20, fill=1)             #caixa para o nome
-        self.c.rect(x+30,y+108,237,20, fill=1)             #caixa para o bi/cc/Matricula
-        self.c.rect(x+147,y+198,120,20, fill=1)            #caixa para tipo de utilizador
-        self.c.rect(x+50,y+42,60,60, fill=1)     #caixa para o qrcode
+        self.c.rect(x+30,y+164,237,20, fill=1)             #caixa para o nome
+        self.c.rect(x+30,y+116,237,20, fill=1)             #caixa para o bi/cc/Matricula
+        self.c.rect(x+147,y+206,120,20, fill=1)            #caixa para tipo de utilizador
         self.c.rect(x+30,y+24,100,18, fill=1)             #caixa para o codigo alfanumerico
         self.c.setFont("Helvetica-Bold", 12)
         for i in self.grupos:
             if self.grupos[i]==1:
                 if i==1:
-                    self.c.setFillColorRGB(0,0,1)
-                    self.c.setStrokeColorRGB(0,0,1)
+                    self.c.setFillColorRGB(0.14,0.48,0.63)
+                    self.c.setStrokeColorRGB(0.14,0.48,0.63)
                 elif i==2:
-                    self.c.setFillColorRGB(1,0,0)
-                    self.c.setStrokeColorRGB(1,0,0)
+                    self.c.setFillColorRGB(0.29,0.49,0.35)
+                    self.c.setStrokeColorRGB(0.29,0.49,0.35)
                 elif i==3:
-                    self.c.setFillColorRGB(0,1,0)
-                    self.c.setStrokeColorRGB(0,1,0)
+                    self.c.setFillColorRGB(0.6,0.77,0.24)
+                    self.c.setStrokeColorRGB(0.6,0.77,0.24)
                 elif i==4:
-                    self.c.setFillColorRGB(1,1,0)
-                    self.c.setStrokeColorRGB(1,1,0)
+                    self.c.setFillColorRGB(1,0.88,0.4)
+                    self.c.setStrokeColorRGB(1,0.88,0.4)
                 elif i==5:
-                    self.c.setFillColorRGB(1,0.4,0)
-                    self.c.setStrokeColorRGB(1,0.4,0)
+                    self.c.setFillColorRGB(0.98,0.47,0.13)
+                    self.c.setStrokeColorRGB(0.98,0.47,0.13)
                 elif i==6:
-                    self.c.setFillColorRGB(1,0,0.39)
-                    self.c.setStrokeColorRGB(1,0,0.39)
+                    self.c.setFillColorRGB(0.95,0.37,0.36)
+                    self.c.setStrokeColorRGB(0.95,0.37,0.36)
                 elif i==7:
-                    self.c.setFillColorRGB(0,1,1)
-                    self.c.setStrokeColorRGB(0,1,1)
+                    self.c.setFillColorRGB(0.44,0.76,0.7)
+                    self.c.setStrokeColorRGB(0.44,0.76,0.7)
                 elif i==8:
-                    self.c.setFillColorRGB(0.4,0.2,0)
-                    self.c.setStrokeColorRGB(0.4,0.2,0)
+                    self.c.setFillColorRGB(0.46,0.31,0.27)
+                    self.c.setStrokeColorRGB(0.46,0.31,0.27)
                 self.c.rect(x+posx,y+posy,30,30,fill=1)
                 self.c.setFillColorRGB(0,0,0)
                 self.c.drawString(x+posx+11,y+posy+11,str(i))
             elif self.grupos[i]==0:
-                self.c.setStrokeColorRGB(0,0,0.3)
-                self.c.setFillColorRGB(0,0,0.3)
+                self.c.setStrokeColorRGB(0.11,0.21,0.34)
+                self.c.setFillColorRGB(0.11,0.21,0.34)
                 self.c.rect(x+posx,y+posy,30,30,fill=1)
                 self.c.setFillColorRGB(1,1,1)
                 self.c.drawString(x+posx+11,y+posy+11,'X')
@@ -345,11 +322,11 @@ class Application(Frame):
         self.c.setStrokeColorRGB(0,0,0)
         self.c.setFillColorRGB(0,0,0)
         if self.listusr.get()=='Artista':
-            self.c.drawString(x+33,y+130, 'Válido para:')
+            self.c.drawString(x+33,y+138, 'Válido para:')
         elif self.listusr.get()=='Viatura':
-            self.c.drawString(x+33,y+130,'Matricula:')
+            self.c.drawString(x+33,y+138,'Matricula:')
         elif self.listusr.get()=='Catering' or self.listusr.get()=='AAUE' or self.listusr.get()=='Núcleos':
-            self.c.drawString(x+33,y+130,'BI/CC:')
+            self.c.drawString(x+33,y+138,'BI/CC:')
             try:
                 self.foto
             except NameError:
@@ -357,22 +334,26 @@ class Application(Frame):
             else:
                 self.c.setStrokeColorRGB(1,1,1)
                 self.c.setFillColorRGB(1,1,1)
-                self.c.rect(x+30,y+198,87,105,fill=1)              #caixa para a foto
-                self.c.drawImage(self.foto,x+30,y+198)
+                self.c.rect(x+30,y+206,87,105,fill=1)              #caixa para a foto
+                self.c.drawImage(self.foto,x+30,y+206)
         else:
-            self.c.drawString(x+33,y+130,'BI/CC:')
+            self.c.drawString(x+33,y+138,'BI/CC:')
 
         self.c.setStrokeColorRGB(0,0,0)
         self.c.setFillColorRGB(0,0,0)
 
+        qr=pyqrcode.create(self.codalfa.upper())
+        qr.png('qrtemp.png',scale=2,module_color=(0,0,0),background=(255,255,255,0))
+
+        self.c.drawImage('qrtemp.png',x+47,y+37)
         self.c.drawCentredString(x+80,y+28,self.codalfa.upper())
 
-        self.c.drawString(x+33,y+178,'Nome:')
+        self.c.drawString(x+33,y+186,'Nome:')
         self.c.setFont("Helvetica-Bold", 14)
 
-        self.c.drawString(x+35,y+160,self.nome.get().upper())
-        self.c.drawString(x+35,y+112,self.bi.get())
-        self.c.drawCentredString(x+207,y+202,self.listusr.get().upper())
+        self.c.drawString(x+35,y+168,self.nome.get().upper())
+        self.c.drawString(x+35,y+120,self.bi.get())
+        self.c.drawCentredString(x+207,y+210,self.listusr.get().upper())
         self.c.showPage()
         self.c.save()
         temp=PdfFileReader(open('credsA4/Credencialtemp.pdf','rb'))
@@ -389,6 +370,8 @@ class Application(Frame):
         output.write(open('credsA4/Credencial'+str(countfiles+1)+'.pdf','wb'))
         open('cnt1','w').write(str(countmerged))
         open('cnt2','w').write(str(countfiles))
+        nr=countfiles*4+countmerged
+        self.nrgrupo['text']="Credenciais no grupo: "+str(nr)
 
 def main():
     root = Tk()
