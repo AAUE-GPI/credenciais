@@ -44,3 +44,5 @@ def getbyboth(name,bi):
 def getbyall(cod,name,bi,tipo):
 	c.execute('select * from credenciais_DB where BI_CC_Matricula="'+bi+'" and Nome="'+name+'" and CodigoAlfaNum="'+cod+'" and tipo_user="'+tipo+'";')
 	return c.fetchall()
+
+create_table()

@@ -85,7 +85,10 @@ class Application(Frame):
         self.procuranome = ttk.Button(self.master,text="Procurar",style='TButton',command=self.searchbyname).place(x=550,y=100,height=50,width=175)    #adicionar o command para a função preview()
         self.procuraid = ttk.Button(self.master,text="Limpar",style='TButton',command=self.limpar).place(x=775,y=100,height=50,width=175)
         self.gerar=ttk.Button(self.master,text='Gerar',style='TButton',command=self.mergeall).place(x=50,y=620,width=175)
-        self.nrgrupo=Label(self.master, text="Credenciais no grupo: 0",font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff')
+        countmerged=int(open('cnt1').read())
+        countfiles=int(open('cnt2').read())
+        nr=countfiles*4+countmerged
+        self.nrgrupo=Label(self.master, text="Credenciais no grupo: "+str(nr),font=('Helvetica',14),bg='#2B2B2B',fg='#ffffff')
         self.nrgrupo.place(x=650,y=250)
 
     def mergeall(self):
@@ -104,8 +107,9 @@ class Application(Frame):
             os.unlink(fil.path)
         open('cnt1','w').write('0')
         open('cnt2','w').write('0')
-        nr=countfiles*4+countmerged
+        nr=0
         self.nrgrupo['text']="Credenciais no grupo: "+str(nr)
+        messagebox.showinfo("Sucesso","PDF pronto para impressão criado com sucesso")
 
     def getfoto(self):
         self.foto=filedialog.askopenfilename(filetypes=[('Image Files',("*.jpg","*.jpeg","*.png"))])
@@ -118,13 +122,13 @@ class Application(Frame):
         user=db.getbyall(alfa,self.nometext.get(),self.idtext.get(),self.listusr.get())
         if user!=[]:
             try:
-                self.foto
-            except NameError:
-                print('')
+                fotogra = Image.open(self.foto)
+            except:
+                pass
             else:
-                fotogra=Image.open(self.foto)
                 fotogra=fotogra.resize((87,105))
                 fotogra.save('fotos/'+self.idtext.get()+'.jpeg','jpeg')
+            self.codalfa=alfa
             messagebox.showinfo("Sucesso","Utilizador "+self.nometext.get()+" criado/alterado com sucesso")
 
     def searchbyname(self):
@@ -140,34 +144,57 @@ class Application(Frame):
             self.idtext.set(user[0][2])
             self.listusr.set(user[0][3])
             self.codalfa=user[0][0]
+            '''
             if user[0][3]=='AAUE':
-                self.switch(1)
+                self.group1.configure(style='pressed.TButton')
+                self.grupos[1]=1
             elif user[0][3]=='Núcleos':
-                self.switch(1)
-                self.switch(4)
+                self.group1.configure(style='pressed.TButton')
+                self.grupos[1]=1
+                self.group4.configure(style='pressed.TButton')
+                self.grupos[4]=1
             elif user[0][3]=='Serviços':
-                self.switch(1)
-                self.switch(3)
-                self.switch(4)
-                self.switch(5)
-                self.switch(6)
-                self.switch(7)
-                self.switch(8)
+                self.group1.configure(style='pressed.TButton')
+                self.grupos[1]=1
+                self.group3.configure(style='pressed.TButton')
+                self.grupos[3]=1
+                self.group4.configure(style='pressed.TButton')
+                self.grupos[4]=1
+                self.group5.configure(style='pressed.TButton')
+                self.grupos[5]=1
+                self.group6.configure(style='pressed.TButton')
+                self.grupos[6]=1
+                self.group7.configure(style='pressed.TButton')
+                self.grupos[7]=1
+                self.group8.configure(style='pressed.TButton')
+                self.grupos[8]=1
             elif user[0][3]=='Catering':
-                self.switch(1)
-                self.switch(4)
-                self.switch(6)
-                self.switch(7)
-                self.switch(8)
+                self.group1.configure(style='pressed.TButton')
+                self.grupos[1]=1
+                self.group4.configure(style='pressed.TButton')
+                self.grupos[4]=1
+                self.group6.configure(style='pressed.TButton')
+                self.grupos[6]=1
+                self.group7.configure(style='pressed.TButton')
+                self.grupos[7]=1
+                self.group8.configure(style='pressed.TButton')
+                self.grupos[8]=1
             elif user[0][3]=='Conceções' or user[0][2]=='Apoio Médico':
-                self.switch(1)
-                self.switch(8)
+                self.group1.configure(style='pressed.TButton')
+                self.grupos[1]=1
+                self.group8.configure(style='pressed.TButton')
+                self.grupos[8]=1
             elif user[0][3]=='Artista':
-                self.switch(1)
-                self.switch(6)
-                self.switch(7)
+                self.group1.configure(style='pressed.TButton')
+                self.grupos[1]=1
+                self.group6.configure(style='pressed.TButton')
+                self.grupos[6]=1
+                self.group7.configure(style='pressed.TButton')
+                self.grupos[7]=1
             elif user[0][3]=='Viatura':
-                self.switch(8)
+                self.group8.configure(style='pressed.TButton')
+                self.grupos[8]=1
+                '''
         else:
             messagebox.showinfo("Não Encontrado","Utilizador não encontrado na Base de dados")
 
@@ -175,7 +202,7 @@ class Application(Frame):
         self.nometext.set('')
         self.idtext.set('')
         self.listusr.set('')
-        self.codalfa=''
+        self.codalfa=None
         self.foto=None
 
     def switch(self,n):
@@ -255,6 +282,9 @@ class Application(Frame):
             can.line(297,0,297,842)
             can.line(0,421,595,421)
             can.showPage()
+            can.line(297,0,297,842)
+            can.line(0,421,595,421)
+            can.showPage()
             can.save()
             x=0
             y=421.5
@@ -328,9 +358,9 @@ class Application(Frame):
         elif self.listusr.get()=='Catering' or self.listusr.get()=='AAUE' or self.listusr.get()=='Núcleos':
             self.c.drawString(x+33,y+138,'BI/CC:')
             try:
-                self.foto
-            except NameError:
-                print("nao existe foto")
+                Image.open(self.foto)
+            except:
+                pass
             else:
                 self.c.setStrokeColorRGB(1,1,1)
                 self.c.setFillColorRGB(1,1,1)
@@ -361,15 +391,21 @@ class Application(Frame):
         page1.mergePage(page2)
         output=PdfFileWriter()
         output.addPage(page1)
-
+        self.backtemp=canvas.Canvas('credsA4/backtemp.pdf')
+        self.backtemp.drawImage('credback.png',x,y)
+        self.backtemp.showPage()
+        self.backtemp.save()
+        backpage2=PdfFileReader(open('credsA4/backtemp.pdf','rb'))
+        backpage1=printready.getPage(1)
+        backpage1.mergePage(backpage2.getPage(0))
+        output.addPage(backpage1)
+        os.unlink('credsA4/Credencialtemp.pdf')
+        os.unlink('credsA4/backtemp.pdf')
         countmerged+=1
-        if countmerged==4:
-            back=PdfFileReader(open('back.pdf','rb'))
-            backpage=back.getPage(0)
-            output.addPage(backpage)
         output.write(open('credsA4/Credencial'+str(countfiles+1)+'.pdf','wb'))
         open('cnt1','w').write(str(countmerged))
         open('cnt2','w').write(str(countfiles))
+
         nr=countfiles*4+countmerged
         self.nrgrupo['text']="Credenciais no grupo: "+str(nr)
 
