@@ -298,15 +298,15 @@ class Application(Frame):
             x=298
             y=0
         posx=147
-        posy=275
+        posy=270
         printready=PdfFileReader(fname,'rb')
         page1=printready.getPage(0)
         self.c.setStrokeColorRGB(1,1,1)
         self.c.drawImage(fundo,x,y)
         self.c.setFillColorRGB(1,1,1)
-        self.c.rect(x+30,y+164,237,20, fill=1)             #caixa para o nome
+        self.c.rect(x+30,y+160,237,20, fill=1)             #caixa para o nome
         self.c.rect(x+30,y+116,237,20, fill=1)             #caixa para o bi/cc/Matricula
-        self.c.rect(x+147,y+206,120,20, fill=1)            #caixa para tipo de utilizador
+        self.c.rect(x+147,y+200,120,20, fill=1)            #caixa para tipo de utilizador
         self.c.rect(x+30,y+24,100,18, fill=1)             #caixa para o codigo alfanumerico
         self.c.setFont("Helvetica-Bold", 12)
         for i in self.grupos:
@@ -315,8 +315,8 @@ class Application(Frame):
                     self.c.setFillColorRGB(0.14,0.48,0.63)
                     self.c.setStrokeColorRGB(0.14,0.48,0.63)
                 elif i==2:
-                    self.c.setFillColorRGB(0.29,0.49,0.35)
-                    self.c.setStrokeColorRGB(0.29,0.49,0.35)
+                    self.c.setFillColorRGB(1,0,0)
+                    self.c.setStrokeColorRGB(1,0,0)
                 elif i==3:
                     self.c.setFillColorRGB(0.6,0.77,0.24)
                     self.c.setStrokeColorRGB(0.6,0.77,0.24)
@@ -363,9 +363,8 @@ class Application(Frame):
                 pass
             else:
                 self.c.setStrokeColorRGB(1,1,1)
-                self.c.setFillColorRGB(1,1,1)
-                self.c.rect(x+30,y+206,87,105,fill=1)              #caixa para a foto
-                self.c.drawImage(self.foto,x+30,y+206)
+                self.c.setFillColorRGB(1,1,1)           #caixa para a foto
+                self.c.drawImage(self.foto,x+30,y+195)
         else:
             self.c.drawString(x+33,y+138,'BI/CC:')
 
@@ -378,12 +377,12 @@ class Application(Frame):
         self.c.drawImage('qrtemp.png',x+47,y+37)
         self.c.drawCentredString(x+80,y+28,self.codalfa.upper())
 
-        self.c.drawString(x+33,y+186,'Nome:')
+        self.c.drawString(x+33,y+183,'Nome:')
         self.c.setFont("Helvetica-Bold", 14)
 
-        self.c.drawString(x+35,y+168,self.nome.get().upper())
+        self.c.drawString(x+35,y+164,self.nome.get().upper())
         self.c.drawString(x+35,y+120,self.bi.get())
-        self.c.drawCentredString(x+207,y+210,self.listusr.get().upper())
+        self.c.drawCentredString(x+207,y+204,self.listusr.get().upper())
         self.c.showPage()
         self.c.save()
         temp=PdfFileReader(open('credsA4/Credencialtemp.pdf','rb'))
@@ -391,16 +390,7 @@ class Application(Frame):
         page1.mergePage(page2)
         output=PdfFileWriter()
         output.addPage(page1)
-        self.backtemp=canvas.Canvas('credsA4/backtemp.pdf')
-        self.backtemp.drawImage('credback.png',x,y)
-        self.backtemp.showPage()
-        self.backtemp.save()
-        backpage2=PdfFileReader(open('credsA4/backtemp.pdf','rb'))
-        backpage1=printready.getPage(1)
-        backpage1.mergePage(backpage2.getPage(0))
-        output.addPage(backpage1)
         os.unlink('credsA4/Credencialtemp.pdf')
-        os.unlink('credsA4/backtemp.pdf')
         countmerged+=1
         output.write(open('credsA4/Credencial'+str(countfiles+1)+'.pdf','wb'))
         open('cnt1','w').write(str(countmerged))
