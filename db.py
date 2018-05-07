@@ -24,7 +24,7 @@ def adicionar(Nome,BI,tipo):
 
 def CodigoAlfaNum():
     caracter= '0A0KU1B1L2V2CM3W3D4NX4EO5Y5F6PZ6G7Q7H8R8IS9JT9'
-    AlfaNum='QF17'
+    AlfaNum='QF18'
     for i in range(0,8):
         AlfaNum += random.choice(caracter)
     return AlfaNum

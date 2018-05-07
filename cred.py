@@ -298,16 +298,16 @@ class Application(Frame):
             x=298
             y=0
         posx=147
-        posy=270
+        posy=255
         printready=PdfFileReader(fname,'rb')
         page1=printready.getPage(0)
         self.c.setStrokeColorRGB(1,1,1)
         self.c.drawImage(fundo,x,y)
         self.c.setFillColorRGB(1,1,1)
-        self.c.rect(x+30,y+160,237,20, fill=1)             #caixa para o nome
-        self.c.rect(x+30,y+116,237,20, fill=1)             #caixa para o bi/cc/Matricula
-        self.c.rect(x+147,y+200,120,20, fill=1)            #caixa para tipo de utilizador
-        self.c.rect(x+30,y+24,100,18, fill=1)             #caixa para o codigo alfanumerico
+        self.c.rect(x+30,y+144,237,20, fill=1)             #caixa para o nome
+        self.c.rect(x+30,y+106,237,20, fill=1)             #caixa para o bi/cc/Matricula
+        self.c.rect(x+147,y+195,120,20, fill=1)            #caixa para tipo de utilizador
+        self.c.rect(x+30,y+18,100,18, fill=1)             #caixa para o codigo alfanumerico
         self.c.setFont("Helvetica-Bold", 12)
         for i in self.grupos:
             if self.grupos[i]==1:
@@ -352,11 +352,11 @@ class Application(Frame):
         self.c.setStrokeColorRGB(0,0,0)
         self.c.setFillColorRGB(0,0,0)
         if self.listusr.get()=='Artista':
-            self.c.drawString(x+33,y+138, 'Válido para:')
+            self.c.drawString(x+33,y+128, 'Válido para:')
         elif self.listusr.get()=='Viatura':
-            self.c.drawString(x+33,y+138,'Matricula:')
+            self.c.drawString(x+33,y+128,'Matricula:')
         elif self.listusr.get()=='Catering' or self.listusr.get()=='AAUE' or self.listusr.get()=='Núcleos':
-            self.c.drawString(x+33,y+138,'BI/CC:')
+            self.c.drawString(x+33,y+128,'BI/CC:')
             try:
                 Image.open(self.foto)
             except:
@@ -364,9 +364,9 @@ class Application(Frame):
             else:
                 self.c.setStrokeColorRGB(1,1,1)
                 self.c.setFillColorRGB(1,1,1)           #caixa para a foto
-                self.c.drawImage(self.foto,x+30,y+195)
+                self.c.drawImage(self.foto,x+30,y+180)
         else:
-            self.c.drawString(x+33,y+138,'BI/CC:')
+            self.c.drawString(x+33,y+128,'BI/CC:')
 
         self.c.setStrokeColorRGB(0,0,0)
         self.c.setFillColorRGB(0,0,0)
@@ -374,15 +374,15 @@ class Application(Frame):
         qr=pyqrcode.create(self.codalfa.upper())
         qr.png('qrtemp.png',scale=2,module_color=(0,0,0),background=(255,255,255,0))
 
-        self.c.drawImage('qrtemp.png',x+47,y+37)
-        self.c.drawCentredString(x+80,y+28,self.codalfa.upper())
+        self.c.drawImage('qrtemp.png',x+47,y+31)
+        self.c.drawCentredString(x+80,y+22,self.codalfa.upper())
 
-        self.c.drawString(x+33,y+183,'Nome:')
+        self.c.drawString(x+33,y+167,'Nome:')
         self.c.setFont("Helvetica-Bold", 14)
 
-        self.c.drawString(x+35,y+164,self.nome.get().upper())
-        self.c.drawString(x+35,y+120,self.bi.get())
-        self.c.drawCentredString(x+207,y+204,self.listusr.get().upper())
+        self.c.drawString(x+35,y+148,self.nome.get().upper())
+        self.c.drawString(x+35,y+110,self.bi.get())
+        self.c.drawCentredString(x+207,y+199,self.listusr.get().upper())
         self.c.showPage()
         self.c.save()
         temp=PdfFileReader(open('credsA4/Credencialtemp.pdf','rb'))
